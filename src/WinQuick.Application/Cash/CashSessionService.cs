@@ -1,16 +1,21 @@
 using WinQuick.Application.Abstractions;
+using WinQuick.Application.Security;
 using WinQuick.Core.Entities;
+using WinQuick.Core.Security;
 
 namespace WinQuick.Application.Cash;
 
 public sealed class CashSessionService(
     IRepository<CashSession> sessions,
+    IPermissionService permissions,
     IUnitOfWork unitOfWork) : ICashSessionService
 {
     public async Task<CashSession> OpenAsync(
         OpenCashSessionCommand command,
         CancellationToken cancellationToken = default)
     {
+        await permissions.EnsurePermissionAsync(command.UserId, command.CompanyId, Permission.CashOpen, cancellationToken);
+
         if (command.OpeningAmount < 0m)
             throw new CashValidationException("O fundo inicial não pode ser negativo.");
 

@@ -7,6 +7,7 @@ using WinQuick.Application.Invoicing;
 using WinQuick.Application.Purchases;
 using WinQuick.Application.Sales;
 using WinQuick.Application.Security;
+using WinQuick.Application.Stock;
 using WinQuick.Application.Suppliers;
 
 namespace WinQuick.Application;
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IIngredientService, IngredientService>();
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IStockService, StockService>();
         services.AddScoped<ISaleReturnService, SaleReturnService>();
         services.AddScoped<ISaleReturnRefundService, SaleReturnRefundService>();
         services.AddScoped<SaleReturnCreditNoteService>();

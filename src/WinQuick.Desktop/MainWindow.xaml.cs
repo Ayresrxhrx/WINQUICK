@@ -1,10 +1,17 @@
+using WinQuick.Application.Security;
+
 namespace WinQuick.Desktop;
 
 public partial class MainWindow : System.Windows.Window
 {
-    public MainWindow()
+    private readonly UserManagementService _userManagement;
+    private readonly Guid _companyId;
+
+    public MainWindow(UserManagementService userManagement, Guid companyId)
     {
         InitializeComponent();
+        _userManagement = userManagement;
+        _companyId = companyId;
     }
 
     private void SetPage(string title, string subtitle)
@@ -22,4 +29,10 @@ public partial class MainWindow : System.Windows.Window
     private void Invoices_Click(object sender, System.Windows.RoutedEventArgs e) => SetPage("Facturação", "Facturas, recibos e notas de crédito");
     private void Cash_Click(object sender, System.Windows.RoutedEventArgs e) => SetPage("Caixa", "Abertura, movimentos e fecho de caixa");
     private void Reports_Click(object sender, System.Windows.RoutedEventArgs e) => SetPage("Relatórios", "Vendas, facturação, stock e caixa");
+
+    private void Users_Click(object sender, System.Windows.RoutedEventArgs e)
+    {
+        var window = new UsersWindow(_userManagement, _companyId) { Owner = this };
+        window.ShowDialog();
+    }
 }

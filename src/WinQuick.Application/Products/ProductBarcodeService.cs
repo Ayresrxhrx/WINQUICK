@@ -9,22 +9,15 @@ public sealed class ProductBarcodeService(IRepository<ProductBarcode> barcodes, 
     public async Task<ProductBarcode> AddAsync(Guid companyId, Guid productId, string barcode, bool isPrimary = false, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(barcode)) throw new ArgumentException("O código de barras é obrigatório.");
-        var product = await products.Query().FirstOrDefaultAsync(x => x.Id == productId && x.CompanyId == companyId, cancellationToken)
-            ?? throw new InvalidOperationException("Produto não encontrado.");
+        var product = await products.Query().FirstOrDefaultAsync(x => x.Id == productId && x.CompanyId == companyId, cancellationToken) ?? throw new InvalidOperationException("Produto não encontrado.");
         var value = barcode.Trim();
-        if (await barcodes.Query().AnyAsync(x => x.CompanyId == companyId && x.Barcode == value, cancellationToken))
-            throw new InvalidOperationException("Este código de barras já está associado a um produto.");
-
+        var existingProductIds = products.Query().Where(x => x.CompanyId == companyId).Select(x => x.Id);
+        if (await barcodes.Query().AnyAsync(x => existingProductIds.Contains(x.ProductId) && x.Barcode == value && x.IsActive, cancellationToken)) throw new InvalidOperationException("Este código de barras já está associado a um produto.");
         if (isPrimary)
         {
-            foreach (var current in barcodes.Query().Where(x => x.ProductId == product.Id && x.IsPrimary))
-            {
-                current.IsPrimary = false;
-                barcodes.Update(current);
-            }
+            foreach (var current in await barcodes.Query().Where(x => x.ProductId == product.Id && x.IsPrimary && x.IsActive).ToListAsync(cancellationToken)) { current.IsPrimary = false; barcodes.Update(current); }
         }
-
-        var entity = new ProductBarcode { CompanyId = companyId, ProductId = product.Id, Barcode = value, IsPrimary = isPrimary };
+        var entity = new ProductBarcode { ProductId = product.Id, Barcode = value, IsPrimary = isPrimary, IsActive = true };
         await barcodes.AddAsync(entity, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return entity;
@@ -32,14 +25,16 @@ public sealed class ProductBarcodeService(IRepository<ProductBarcode> barcodes, 
 
     public async Task RemoveAsync(Guid companyId, Guid barcodeId, CancellationToken cancellationToken = default)
     {
-        var entity = await barcodes.Query().FirstOrDefaultAsync(x => x.Id == barcodeId && x.CompanyId == companyId, cancellationToken)
-            ?? throw new InvalidOperationException("Código de barras não encontrado.");
-        if (entity.IsPrimary && await barcodes.Query().CountAsync(x => x.ProductId == entity.ProductId, cancellationToken) <= 1)
-            throw new InvalidOperationException("O produto precisa manter pelo menos um código de barras.");
-        barcodes.Delete(entity);
+        var entity = await barcodes.Query().FirstOrDefaultAsync(x => x.Id == barcodeId && x.IsActive && products.Query().Where(p => p.CompanyId == companyId).Select(p => p.Id).Contains(x.ProductId), cancellationToken) ?? throw new InvalidOperationException("Código de barras não encontrado.");
+        entity.IsActive = false;
+        entity.IsPrimary = false;
+        barcodes.Update(entity);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public Task<ProductBarcode?> FindAsync(Guid companyId, string barcode, CancellationToken cancellationToken = default)
-        => barcodes.Query().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.Barcode == barcode.Trim(), cancellationToken);
+    {
+        var productIds = products.Query().Where(x => x.CompanyId == companyId).Select(x => x.Id);
+        return barcodes.Query().FirstOrDefaultAsync(x => productIds.Contains(x.ProductId) && x.Barcode == barcode.Trim() && x.IsActive, cancellationToken);
+    }
 }

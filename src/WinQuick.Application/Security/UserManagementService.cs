@@ -16,11 +16,15 @@ public sealed class UserManagementService(
     public Task<List<User>> ListAsync(Guid companyId, CancellationToken cancellationToken = default)
         => users.Query().Where(x => x.CompanyId == companyId).OrderBy(x => x.Username).ToListAsync(cancellationToken);
 
+    public Task<List<Role>> ListRolesAsync(Guid companyId, CancellationToken cancellationToken = default)
+        => roles.Query().Where(x => x.CompanyId == companyId && x.IsActive).OrderBy(x => x.Name).ToListAsync(cancellationToken);
+
     public async Task<User> CreateAsync(CreateUserCommand command, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(command.Username)) throw new ArgumentException("O utilizador é obrigatório.");
         if (command.Password.Length < 4) throw new ArgumentException("A senha deve ter pelo menos 4 caracteres.");
-        if (await users.Query().AnyAsync(x => x.CompanyId == command.CompanyId && x.Username == command.Username.Trim(), cancellationToken))
+        var username = command.Username.Trim();
+        if (await users.Query().AnyAsync(x => x.CompanyId == command.CompanyId && x.Username == username, cancellationToken))
             throw new InvalidOperationException("Este utilizador já existe.");
         if (!await roles.Query().AnyAsync(x => x.Id == command.RoleId && x.CompanyId == command.CompanyId && x.IsActive, cancellationToken))
             throw new InvalidOperationException("Perfil de acesso inválido.");
@@ -28,7 +32,7 @@ public sealed class UserManagementService(
         var user = new User
         {
             CompanyId = command.CompanyId,
-            Username = command.Username.Trim(),
+            Username = username,
             DisplayName = command.DisplayName.Trim(),
             PasswordHash = AuthenticationService.HashPassword(command.Password),
             IsActive = true

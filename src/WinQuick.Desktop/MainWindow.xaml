@@ -1,0 +1,8 @@
+<Window x:Class="WinQuick.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WINQUICK 1.0" Height="720" Width="1280">
+    <Grid>
+        <TextBlock Text="WINQUICK 1.0" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Center" />
+    </Grid>
+</Window>

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>WinQuick.Infrastructure</RootNamespace>
+    <AssemblyName>WinQuick.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../WinQuick.Core/WinQuick.Core.csproj" />
+    <ProjectReference Include="../WinQuick.Application/WinQuick.Application.csproj" />
+  </ItemGroup>
+</Project>

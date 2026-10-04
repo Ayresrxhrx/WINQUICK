@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>WinQuick.Server</RootNamespace>
+    <AssemblyName>WinQuick.Server</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../WinQuick.Application/WinQuick.Application.csproj" />
+    <ProjectReference Include="../WinQuick.Infrastructure/WinQuick.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

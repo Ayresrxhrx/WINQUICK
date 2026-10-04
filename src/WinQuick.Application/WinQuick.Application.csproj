@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>WinQuick.Application</RootNamespace>
+    <AssemblyName>WinQuick.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../WinQuick.Core/WinQuick.Core.csproj" />
+  </ItemGroup>
+</Project>

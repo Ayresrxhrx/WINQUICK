@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultApplicationDefinition>true</EnableDefaultApplicationDefinition>
+    <RootNamespace>WinQuick.Desktop</RootNamespace>
+    <AssemblyName>WinQuick.Desktop</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../WinQuick.Core/WinQuick.Core.csproj" />
+  </ItemGroup>
+</Project>

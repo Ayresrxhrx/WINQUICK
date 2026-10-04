@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using WinQuick.Application.Abstractions;
 using WinQuick.Application.Security;
 using WinQuick.Core.Entities;
@@ -112,11 +113,11 @@ public sealed class StockService(
     }
 
     private async Task<Product> GetProductAsync(Guid companyId, Guid productId, CancellationToken cancellationToken)
-        => await products.Query().FirstOrDefaultAsync(x => x.Id == productId && x.CompanyId == companyId)
+        => await products.Query().FirstOrDefaultAsync(x => x.Id == productId && x.CompanyId == companyId, cancellationToken)
            ?? throw new InvalidOperationException("Produto não encontrado.");
 
     private async Task<StockBalance> GetBalanceAsync(Guid companyId, Guid productId, CancellationToken cancellationToken)
-        => await balances.Query().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.ProductId == productId)
+        => await balances.Query().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.ProductId == productId, cancellationToken)
            ?? throw new InvalidOperationException("Saldo de stock não encontrado.");
 
     private static void ValidateQuantity(decimal quantity)

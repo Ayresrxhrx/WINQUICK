@@ -20,6 +20,8 @@ public sealed class WinQuickDbContext(DbContextOptions<WinQuickDbContext> option
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<Sale> Sales => Set<Sale>();
     public DbSet<SaleItem> SaleItems => Set<SaleItem>();
+    public DbSet<SaleReturn> SaleReturns => Set<SaleReturn>();
+    public DbSet<SaleReturnItem> SaleReturnItems => Set<SaleReturnItem>();
     public DbSet<SuspendedSale> SuspendedSales => Set<SuspendedSale>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceItem> InvoiceItems => Set<InvoiceItem>();
@@ -36,6 +38,7 @@ public sealed class WinQuickDbContext(DbContextOptions<WinQuickDbContext> option
     public DbSet<StockTransfer> StockTransfers => Set<StockTransfer>();
     public DbSet<StockCount> StockCounts => Set<StockCount>();
     public DbSet<Ingredient> Ingredients => Set<Ingredient>();
+    public DbSet<IngredientStockBalance> IngredientStockBalances => Set<IngredientStockBalance>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<RecipeItem> RecipeItems => Set<RecipeItem>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();

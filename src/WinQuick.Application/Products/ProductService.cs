@@ -15,37 +15,15 @@ public interface IProductService
     Task<IReadOnlyList<Product>> SearchAsync(Guid companyId, string? search, bool includeInactive = false, CancellationToken cancellationToken = default);
 }
 
-public sealed class ProductService(
-    IRepository<Product> products,
-    IRepository<ProductBarcode> barcodes,
-    IUnitOfWork unitOfWork) : IProductService
+public sealed class ProductService(IRepository<Product> products, IRepository<ProductBarcode> barcodes, IUnitOfWork unitOfWork) : IProductService
 {
     public async Task<Product> CreateAsync(CreateProductCommand command, CancellationToken cancellationToken = default)
     {
         Validate(command.Name, command.Sku, command.CostPrice, command.SalePrice, command.MinimumStock, command.MaximumStock);
         await EnsureUniqueAsync(command.CompanyId, command.Sku, command.Barcode, null, cancellationToken);
-
-        var product = new Product
-        {
-            CompanyId = command.CompanyId,
-            Name = command.Name.Trim(),
-            Sku = command.Sku.Trim(),
-            CategoryId = command.CategoryId,
-            CostPrice = command.CostPrice,
-            SalePrice = command.SalePrice,
-            MinimumStock = command.MinimumStock,
-            MaximumStock = command.MaximumStock,
-            TaxRateId = command.TaxRateId,
-            TrackStock = command.TrackStock,
-            IsActive = true,
-            CreatedAtUtc = DateTime.UtcNow,
-            UpdatedAtUtc = DateTime.UtcNow
-        };
-
+        var product = new Product { CompanyId = command.CompanyId, Name = command.Name.Trim(), Sku = command.Sku.Trim(), CategoryId = command.CategoryId, CostPrice = command.CostPrice, SalePrice = command.SalePrice, MinimumStock = command.MinimumStock, MaximumStock = command.MaximumStock, TaxRateId = command.TaxRateId, TrackStock = command.TrackStock, IsActive = true, CreatedAtUtc = DateTime.UtcNow, UpdatedAtUtc = DateTime.UtcNow };
         await products.AddAsync(product, cancellationToken);
-        if (!string.IsNullOrWhiteSpace(command.Barcode))
-            await barcodes.AddAsync(new ProductBarcode { ProductId = product.Id, CompanyId = command.CompanyId, Barcode = command.Barcode.Trim(), IsPrimary = true }, cancellationToken);
-
+        if (!string.IsNullOrWhiteSpace(command.Barcode)) await barcodes.AddAsync(new ProductBarcode { ProductId = product.Id, Barcode = command.Barcode.Trim(), IsPrimary = true }, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return product;
     }
@@ -53,52 +31,31 @@ public sealed class ProductService(
     public async Task<Product> UpdateAsync(UpdateProductCommand command, CancellationToken cancellationToken = default)
     {
         Validate(command.Name, command.Sku, command.CostPrice, command.SalePrice, command.MinimumStock, command.MaximumStock);
-        var product = await products.Query().FirstOrDefaultAsync(x => x.Id == command.ProductId && x.CompanyId == command.CompanyId, cancellationToken)
-            ?? throw new InvalidOperationException("Produto não encontrado.");
-
+        var product = await products.Query().FirstOrDefaultAsync(x => x.Id == command.ProductId && x.CompanyId == command.CompanyId, cancellationToken) ?? throw new InvalidOperationException("Produto não encontrado.");
         await EnsureUniqueAsync(command.CompanyId, command.Sku, command.Barcode, product.Id, cancellationToken);
-
-        product.Name = command.Name.Trim();
-        product.Sku = command.Sku.Trim();
-        product.CategoryId = command.CategoryId;
-        product.CostPrice = command.CostPrice;
-        product.SalePrice = command.SalePrice;
-        product.MinimumStock = command.MinimumStock;
-        product.MaximumStock = command.MaximumStock;
-        product.TaxRateId = command.TaxRateId;
-        product.TrackStock = command.TrackStock;
-        product.IsActive = command.IsActive;
-        product.UpdatedAtUtc = DateTime.UtcNow;
+        product.Name = command.Name.Trim(); product.Sku = command.Sku.Trim(); product.CategoryId = command.CategoryId; product.CostPrice = command.CostPrice; product.SalePrice = command.SalePrice; product.MinimumStock = command.MinimumStock; product.MaximumStock = command.MaximumStock; product.TaxRateId = command.TaxRateId; product.TrackStock = command.TrackStock; product.IsActive = command.IsActive; product.UpdatedAtUtc = DateTime.UtcNow;
         products.Update(product);
-
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return product;
     }
 
-    public Task<Product?> GetAsync(Guid companyId, Guid productId, CancellationToken cancellationToken = default)
-        => products.Query().FirstOrDefaultAsync(x => x.Id == productId && x.CompanyId == companyId, cancellationToken);
+    public Task<Product?> GetAsync(Guid companyId, Guid productId, CancellationToken cancellationToken = default) => products.Query().FirstOrDefaultAsync(x => x.Id == productId && x.CompanyId == companyId, cancellationToken);
 
     public async Task<IReadOnlyList<Product>> SearchAsync(Guid companyId, string? search, bool includeInactive = false, CancellationToken cancellationToken = default)
     {
         var query = products.Query().Where(x => x.CompanyId == companyId);
         if (!includeInactive) query = query.Where(x => x.IsActive);
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var term = search.Trim();
-            query = query.Where(x => x.Name.Contains(term) || x.Sku.Contains(term));
-        }
+        if (!string.IsNullOrWhiteSpace(search)) { var term = search.Trim(); query = query.Where(x => x.Name.Contains(term) || x.Sku.Contains(term)); }
         return await query.OrderBy(x => x.Name).ToListAsync(cancellationToken);
     }
 
     private async Task EnsureUniqueAsync(Guid companyId, string sku, string? barcode, Guid? currentProductId, CancellationToken cancellationToken)
     {
-        var duplicateSku = await products.Query().AnyAsync(x => x.CompanyId == companyId && x.Sku == sku.Trim() && x.Id != currentProductId, cancellationToken);
-        if (duplicateSku) throw new InvalidOperationException("O SKU já está associado a outro produto.");
-
+        if (await products.Query().AnyAsync(x => x.CompanyId == companyId && x.Sku == sku.Trim() && x.Id != currentProductId, cancellationToken)) throw new InvalidOperationException("O SKU já está associado a outro produto.");
         if (!string.IsNullOrWhiteSpace(barcode))
         {
-            var duplicateBarcode = await barcodes.Query().AnyAsync(x => x.CompanyId == companyId && x.Barcode == barcode.Trim() && x.ProductId != currentProductId, cancellationToken);
-            if (duplicateBarcode) throw new InvalidOperationException("O código de barras já está associado a outro produto.");
+            var productIds = products.Query().Where(x => x.CompanyId == companyId && x.Id != currentProductId).Select(x => x.Id);
+            if (await barcodes.Query().AnyAsync(x => productIds.Contains(x.ProductId) && x.Barcode == barcode.Trim() && x.IsActive, cancellationToken)) throw new InvalidOperationException("O código de barras já está associado a outro produto.");
         }
     }
 

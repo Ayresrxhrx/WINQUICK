@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WinQuick.Core.Entities;
+using WinQuick.Core.Security;
 
 namespace WinQuick.Infrastructure.Persistence;
 
@@ -10,7 +11,9 @@ public sealed class WinQuickDbContext(DbContextOptions<WinQuickDbContext> option
     public DbSet<User> Users => Set<User>();
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<Role> Roles => Set<Role>();
-    public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<PermissionDefinition> Permissions => Set<PermissionDefinition>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<TaxRate> TaxRates => Set<TaxRate>();
     public DbSet<Product> Products => Set<Product>();

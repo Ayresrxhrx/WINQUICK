@@ -65,6 +65,11 @@ public sealed class PurchaseService(
             ?? throw new KeyNotFoundException("Pedido de compra não encontrado.");
         if (order.CompanyId != command.CompanyId || order.IsCancelled) throw new InvalidOperationException("Pedido de compra inválido.");
 
+        var supplier = await suppliers.GetByIdAsync(order.SupplierId, cancellationToken)
+            ?? throw new KeyNotFoundException("Fornecedor não encontrado.");
+        if (supplier.CompanyId != command.CompanyId || !supplier.IsActive) throw new InvalidOperationException("Fornecedor inválido ou inactivo.");
+
+        decimal receivedPayable = 0m;
         foreach (var request in command.Items)
         {
             if (request.Quantity <= 0) throw new ArgumentException("A quantidade recebida deve ser maior que zero.");
@@ -89,6 +94,8 @@ public sealed class PurchaseService(
 
             item.ReceivedQuantity += request.Quantity;
             orderItems.Update(item);
+            receivedPayable += request.Quantity * item.UnitCost * (1m + item.TaxRate / 100m);
+
             await movements.AddAsync(new StockMovement
             {
                 CompanyId = command.CompanyId,
@@ -102,7 +109,10 @@ public sealed class PurchaseService(
             }, cancellationToken);
         }
 
-        var allItems = orders.Query().Where(x => x.Id == order.Id).SelectMany(_ => orderItems.Query()).Where(x => x.PurchaseOrderId == order.Id).ToList();
+        supplier.Balance += receivedPayable;
+        suppliers.Update(supplier);
+
+        var allItems = orderItems.Query().Where(x => x.PurchaseOrderId == order.Id).ToList();
         if (allItems.All(x => x.ReceivedQuantity >= x.OrderedQuantity)) order.ReceivedAtUtc = DateTime.UtcNow;
         orders.Update(order);
         await unitOfWork.SaveChangesAsync(cancellationToken);

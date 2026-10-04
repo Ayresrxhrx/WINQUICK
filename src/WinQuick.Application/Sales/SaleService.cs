@@ -15,9 +15,11 @@ public sealed class SaleService(
         ValidateCommand(command);
 
         var productIds = command.Items.Select(x => x.ProductId).Distinct().ToArray();
-        var productList = await products.Query()
+        var productList = products.Query()
             .Where(x => productIds.Contains(x.Id) && x.CompanyId == command.CompanyId && x.IsActive)
-            .ToListAsync(cancellationToken);
+            .ToList();
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (productList.Count != productIds.Length)
             throw new SaleValidationException("Um ou mais produtos não existem, estão inactivos ou não pertencem à empresa.");
@@ -44,9 +46,8 @@ public sealed class SaleService(
         if (applied < total)
             throw new SaleValidationException("O valor pago é inferior ao total da venda.");
 
-        var change = tendered - applied;
-        if (change < 0m)
-            change = 0m;
+        var change = Math.Max(0m, tendered - applied);
+        var now = DateTime.UtcNow;
 
         var sale = new Sale
         {
@@ -54,15 +55,15 @@ public sealed class SaleService(
             TerminalId = command.TerminalId,
             UserId = command.UserId,
             CustomerId = command.CustomerId,
-            Number = $"V-{DateTime.UtcNow:yyyyMMddHHmmssfff}",
+            Number = $"V-{now:yyyyMMddHHmmssfff}-{Guid.NewGuid():N[..6]}",
             Subtotal = subtotal,
             DiscountAmount = discount,
             TaxAmount = 0m,
             Total = total,
             PaidAmount = applied,
             ChangeAmount = change,
-            CreatedAtUtc = DateTime.UtcNow,
-            CompletedAtUtc = DateTime.UtcNow
+            CreatedAtUtc = now,
+            CompletedAtUtc = now
         };
 
         await unitOfWork.ExecuteInTransactionAsync(async ct =>

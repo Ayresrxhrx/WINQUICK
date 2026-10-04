@@ -4,8 +4,8 @@ using WinQuick.Core.Entities;
 
 namespace WinQuick.Application.Categories;
 
-public sealed record CreateCategoryCommand(Guid CompanyId, string Name, Guid? ParentId = null, string? Description = null);
-public sealed record UpdateCategoryCommand(Guid CompanyId, Guid CategoryId, string Name, Guid? ParentId = null, string? Description = null, bool IsActive = true);
+public sealed record CreateCategoryCommand(Guid CompanyId, string Name, Guid? ParentCategoryId = null, string? Description = null);
+public sealed record UpdateCategoryCommand(Guid CompanyId, Guid CategoryId, string Name, Guid? ParentCategoryId = null, string? Description = null, bool IsActive = true);
 
 public interface ICategoryService
 {
@@ -19,20 +19,13 @@ public sealed class CategoryService(IRepository<Category> categories, IUnitOfWor
     public async Task<Category> CreateAsync(CreateCategoryCommand command, CancellationToken cancellationToken = default)
     {
         Validate(command.Name);
-        if (command.ParentId == Guid.Empty) command = command with { ParentId = null };
-        if (command.ParentId is not null && !await categories.Query().AnyAsync(x => x.Id == command.ParentId && x.CompanyId == command.CompanyId, cancellationToken))
+        if (command.ParentCategoryId == Guid.Empty) command = command with { ParentCategoryId = null };
+        if (command.ParentCategoryId is not null && !await categories.Query().AnyAsync(x => x.Id == command.ParentCategoryId && x.CompanyId == command.CompanyId, cancellationToken))
             throw new InvalidOperationException("A categoria principal não existe nesta empresa.");
         if (await categories.Query().AnyAsync(x => x.CompanyId == command.CompanyId && x.Name == command.Name.Trim(), cancellationToken))
             throw new InvalidOperationException("Já existe uma categoria com este nome.");
 
-        var category = new Category
-        {
-            CompanyId = command.CompanyId,
-            Name = command.Name.Trim(),
-            ParentId = command.ParentId,
-            Description = command.Description?.Trim(),
-            IsActive = true
-        };
+        var category = new Category { CompanyId = command.CompanyId, Name = command.Name.Trim(), ParentCategoryId = command.ParentCategoryId, Description = command.Description?.Trim(), IsActive = true };
         await categories.AddAsync(category, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return category;
@@ -43,16 +36,17 @@ public sealed class CategoryService(IRepository<Category> categories, IUnitOfWor
         Validate(command.Name);
         var category = await categories.Query().FirstOrDefaultAsync(x => x.Id == command.CategoryId && x.CompanyId == command.CompanyId, cancellationToken)
             ?? throw new InvalidOperationException("Categoria não encontrada.");
-        if (command.ParentId == category.Id) throw new InvalidOperationException("Uma categoria não pode ser a sua própria categoria principal.");
-        if (command.ParentId is not null && !await categories.Query().AnyAsync(x => x.Id == command.ParentId && x.CompanyId == command.CompanyId, cancellationToken))
+        if (command.ParentCategoryId == category.Id) throw new InvalidOperationException("Uma categoria não pode ser a sua própria categoria principal.");
+        if (command.ParentCategoryId is not null && !await categories.Query().AnyAsync(x => x.Id == command.ParentCategoryId && x.CompanyId == command.CompanyId, cancellationToken))
             throw new InvalidOperationException("A categoria principal não existe nesta empresa.");
         if (await categories.Query().AnyAsync(x => x.CompanyId == command.CompanyId && x.Id != category.Id && x.Name == command.Name.Trim(), cancellationToken))
             throw new InvalidOperationException("Já existe uma categoria com este nome.");
 
         category.Name = command.Name.Trim();
-        category.ParentId = command.ParentId;
+        category.ParentCategoryId = command.ParentCategoryId;
         category.Description = command.Description?.Trim();
         category.IsActive = command.IsActive;
+        category.UpdatedAtUtc = DateTime.UtcNow;
         categories.Update(category);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return category;

@@ -48,6 +48,7 @@ public sealed class SaleService(
 
         var change = Math.Max(0m, tendered - applied);
         var now = DateTime.UtcNow;
+        var uniqueSuffix = Guid.NewGuid().ToString("N")[..6];
 
         var sale = new Sale
         {
@@ -55,7 +56,7 @@ public sealed class SaleService(
             TerminalId = command.TerminalId,
             UserId = command.UserId,
             CustomerId = command.CustomerId,
-            Number = $"V-{now:yyyyMMddHHmmssfff}-{Guid.NewGuid():N[..6]}",
+            Number = $"V-{now:yyyyMMddHHmmssfff}-{uniqueSuffix}",
             Subtotal = subtotal,
             DiscountAmount = discount,
             TaxAmount = 0m,

@@ -1,80 +1,94 @@
 <Window x:Class="WinQuick.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WINQUICK" Height="820" Width="1440" MinHeight="700" MinWidth="1100"
+        Title="WINQUICK — Gestão &amp; POS" Height="900" Width="1540" MinHeight="760" MinWidth="1180"
         WindowStartupLocation="CenterScreen" Background="{StaticResource PageBackground}">
+    <Window.Resources>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="25" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+        </Style>
+    </Window.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="235" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-
+        <Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
         <Border Grid.Column="0" Background="{StaticResource SidebarBackground}">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Margin="18,24,18,18">
-                    <TextBlock Text="WINQUICK" Foreground="White" FontSize="25" FontWeight="Bold" />
-                    <TextBlock Text="Gestão &amp; POS" Foreground="#9CA3AF" FontSize="12" Margin="0,3,0,0" />
-                </StackPanel>
-                <StackPanel>
-                    <Button Style="{StaticResource NavButton}" Content="▦   Dashboard" Click="Dashboard_Click" />
-                    <Button Style="{StaticResource NavButton}" Content="▣   Ponto de Venda" Click="Pos_Click" />
-                    <Button Style="{StaticResource NavButton}" Content="□   Produtos" Click="Products_Click" />
-                    <Button Style="{StaticResource NavButton}" Content="◇   Stock" Click="Stock_Click" />
-                    <Button Style="{StaticResource NavButton}" Content="♙   Clientes" Click="Customers_Click" />
-                    <Button Style="{StaticResource NavButton}" Content="▤   Compras" Click="Purchases_Click" />
-                    <Button Style="{StaticResource NavButton}" Content="▥   Facturação" Click="Invoices_Click" />
-                    <Button Style="{StaticResource NavButton}" Content="◷   Caixa" Click="Cash_Click" />
-                    <Button Style="{StaticResource NavButton}" Content="☷   Relatórios" Click="Reports_Click" />
-                </StackPanel>
-                <Border DockPanel.Dock="Bottom" Margin="12" Padding="12" Background="#1F2937" CornerRadius="10">
+            <DockPanel LastChildFill="True">
+                <Border DockPanel.Dock="Top" Padding="22,24,22,22">
                     <StackPanel>
-                        <TextBlock Text="OPERADOR" Foreground="#9CA3AF" FontSize="10" />
-                        <TextBlock Text="Sessão activa" Foreground="White" FontWeight="SemiBold" Margin="0,3,0,0" />
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="38" Height="38" CornerRadius="10" Background="{StaticResource PrimaryBrush}">
+                                <TextBlock Text="W" Foreground="White" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="WINQUICK" Foreground="White" FontSize="21" FontWeight="Bold"/>
+                                <TextBlock Text="GESTÃO &amp; POS" Foreground="{StaticResource SidebarMuted}" FontSize="9" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
+                </Border>
+                <StackPanel>
+                    <TextBlock Text="PRINCIPAL" Foreground="#667085" FontSize="9" FontWeight="Bold" Margin="23,7,0,6"/>
+                    <Button Style="{StaticResource NavButton}" Content="▦   Dashboard" Click="Dashboard_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="▣   Ponto de Venda" Click="Pos_Click"/>
+                    <TextBlock Text="GESTÃO" Foreground="#667085" FontSize="9" FontWeight="Bold" Margin="23,18,0,6"/>
+                    <Button Style="{StaticResource NavButton}" Content="□   Produtos" Click="Products_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="◇   Stock" Click="Stock_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="♙   Clientes" Click="Customers_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="▤   Compras" Click="Purchases_Click"/>
+                    <TextBlock Text="FINANCEIRO" Foreground="#667085" FontSize="9" FontWeight="Bold" Margin="23,18,0,6"/>
+                    <Button Style="{StaticResource NavButton}" Content="▥   Facturação" Click="Invoices_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="◷   Caixa" Click="Cash_Click"/>
+                    <Button Style="{StaticResource NavButton}" Content="☷   Relatórios" Click="Reports_Click"/>
+                </StackPanel>
+                <Border DockPanel.Dock="Bottom" Margin="13" Padding="13" Background="#121C2D" CornerRadius="11">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/><ColumnDefinition Width="20"/></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" CornerRadius="17" Background="#243247"><TextBlock Text="O" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"><TextBlock Text="OPERADOR" Foreground="#7F8EA3" FontSize="9" FontWeight="Bold"/><TextBlock Text="Sessão activa" Foreground="White" FontSize="12" FontWeight="SemiBold" Margin="0,2,0,0"/></StackPanel>
+                        <Ellipse Grid.Column="2" Width="8" Height="8" Fill="#12B76A" VerticalAlignment="Center"/>
+                    </Grid>
                 </Border>
             </DockPanel>
         </Border>
-
-        <Grid Grid.Column="1" Margin="30">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-            <DockPanel Grid.Row="0" Margin="0,0,0,24">
-                <StackPanel DockPanel.Dock="Left">
-                    <TextBlock x:Name="PageTitle" Text="Dashboard" FontSize="30" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" />
-                    <TextBlock x:Name="PageSubtitle" Text="Visão geral da operação" Foreground="{StaticResource TextSecondary}" Margin="0,5,0,0" />
+        <Grid Grid.Column="1" Margin="34,28,34,30">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Grid Grid.Row="0" Margin="0,0,0,25">
+                <StackPanel HorizontalAlignment="Left"><TextBlock x:Name="PageTitle" Text="Dashboard" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/><TextBlock x:Name="PageSubtitle" Text="Visão geral da operação" FontSize="13" Foreground="{StaticResource TextSecondary}" Margin="0,5,0,0"/></StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Border Width="210" Height="40" Background="White" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="9" Margin="0,0,10,0"><TextBlock Text="⌕  Pesquisar..." Foreground="#98A2B3" VerticalAlignment="Center" Margin="13,0"/></Border>
+                    <Button Style="{StaticResource PrimaryButton}" Content="+  Nova venda" Click="Pos_Click"/>
                 </StackPanel>
-                <Button DockPanel.Dock="Right" Content="+ Nova venda" Background="{StaticResource PrimaryBrush}" Foreground="White" Padding="22,12" Click="Pos_Click" />
-            </DockPanel>
-
+            </Grid>
             <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,22">
-                <Border Background="White" CornerRadius="12" Padding="18" Margin="0,0,10,0">
-                    <StackPanel><TextBlock Text="Vendas hoje" Foreground="{StaticResource TextSecondary}"/><TextBlock Text="MT 0,00" FontSize="25" FontWeight="Bold" Margin="0,7,0,0"/></StackPanel>
-                </Border>
-                <Border Background="White" CornerRadius="12" Padding="18" Margin="5,0,10,0">
-                    <StackPanel><TextBlock Text="Facturas" Foreground="{StaticResource TextSecondary}"/><TextBlock Text="0" FontSize="25" FontWeight="Bold" Margin="0,7,0,0"/></StackPanel>
-                </Border>
-                <Border Background="White" CornerRadius="12" Padding="18" Margin="5,0,10,0">
-                    <StackPanel><TextBlock Text="Stock baixo" Foreground="{StaticResource TextSecondary}"/><TextBlock Text="0" FontSize="25" FontWeight="Bold" Margin="0,7,0,0"/></StackPanel>
-                </Border>
-                <Border Background="White" CornerRadius="12" Padding="18" Margin="5,0,0,0">
-                    <StackPanel><TextBlock Text="Caixa" Foreground="{StaticResource TextSecondary}"/><TextBlock Text="Fechado" FontSize="25" FontWeight="Bold" Margin="0,7,0,0"/></StackPanel>
-                </Border>
+                <Border Style="{StaticResource Card}" Padding="19" Margin="0,0,8,0"><Grid><StackPanel><TextBlock Text="VENDAS HOJE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"/><TextBlock Text="MT 0,00" Style="{StaticResource StatValue}" Margin="0,8,0,2"/><TextBlock Text="Sem vendas registadas" FontSize="11" Foreground="#98A2B3"/></StackPanel><Border Width="38" Height="38" CornerRadius="10" Background="#ECFDF3" HorizontalAlignment="Right" VerticalAlignment="Top"><TextBlock Text="↗" Foreground="{StaticResource PrimaryBrush}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Grid></Border>
+                <Border Style="{StaticResource Card}" Padding="19" Margin="7,0,8,0"><Grid><StackPanel><TextBlock Text="FACTURAS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"/><TextBlock Text="0" Style="{StaticResource StatValue}" Margin="0,8,0,2"/><TextBlock Text="Emitidas hoje" FontSize="11" Foreground="#98A2B3"/></StackPanel><Border Width="38" Height="38" CornerRadius="10" Background="#EFF8FF" HorizontalAlignment="Right" VerticalAlignment="Top"><TextBlock Text="▥" Foreground="{StaticResource InfoBrush}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Grid></Border>
+                <Border Style="{StaticResource Card}" Padding="19" Margin="7,0,8,0"><Grid><StackPanel><TextBlock Text="STOCK BAIXO" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"/><TextBlock Text="0" Style="{StaticResource StatValue}" Margin="0,8,0,2"/><TextBlock Text="Produtos a verificar" FontSize="11" Foreground="#98A2B3"/></StackPanel><Border Width="38" Height="38" CornerRadius="10" Background="#FFFAEB" HorizontalAlignment="Right" VerticalAlignment="Top"><TextBlock Text="!" Foreground="{StaticResource WarningBrush}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Grid></Border>
+                <Border Style="{StaticResource Card}" Padding="19" Margin="7,0,0,0"><Grid><StackPanel><TextBlock Text="CAIXA" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"/><TextBlock Text="Fechado" Style="{StaticResource StatValue}" FontSize="21" Margin="0,10,0,3"/><TextBlock Text="Nenhuma sessão activa" FontSize="11" Foreground="#98A2B3"/></StackPanel><Border Width="38" Height="38" CornerRadius="10" Background="#F2F4F7" HorizontalAlignment="Right" VerticalAlignment="Top"><TextBlock Text="◷" Foreground="#667085" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Grid></Border>
             </UniformGrid>
-
-            <Border Grid.Row="2" Background="White" CornerRadius="14" Padding="24">
-                <Grid>
-                    <StackPanel x:Name="DashboardContent">
-                        <TextBlock Text="Bem-vindo ao WINQUICK" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}" />
-                        <TextBlock Text="Use o menu para entrar no POS, gerir produtos, stock, clientes, compras, facturação e caixa." TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" Margin="0,8,0,24" />
-                        <Border Background="#F0FDF4" CornerRadius="10" Padding="16">
-                            <StackPanel><TextBlock Text="Sistema pronto para operação" FontWeight="SemiBold" Foreground="#166534"/><TextBlock Text="A interface está ligada à estrutura modular do WINQUICK e será expandida por módulo." Foreground="#166534" Margin="0,5,0,0"/></StackPanel>
-                        </Border>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="1.55*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Padding="23" Margin="0,0,11,0">
+                    <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <Grid><StackPanel><TextBlock Text="Desempenho de vendas" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/><TextBlock Text="Resumo da actividade comercial" Foreground="{StaticResource TextSecondary}" FontSize="11" Margin="0,4,0,0"/></StackPanel><TextBlock Text="Hoje" HorizontalAlignment="Right" Foreground="{StaticResource TextSecondary}" FontSize="11" VerticalAlignment="Top"/></Grid>
+                        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="Ainda não existem vendas" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/><TextBlock Text="As vendas registadas aparecerão aqui." Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,6,0,0" HorizontalAlignment="Center"/></StackPanel>
+                    </Grid>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="23">
+                    <StackPanel><Grid><TextBlock Text="Acesso rápido" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/><TextBlock Text="Acções" HorizontalAlignment="Right" Foreground="{StaticResource TextSecondary}" FontSize="11"/></Grid>
+                        <Button Style="{StaticResource PrimaryButton}" Content="+  Abrir ponto de venda" HorizontalAlignment="Stretch" Margin="0,20,0,8" Click="Pos_Click"/>
+                        <Button Content="□  Gerir produtos" HorizontalContentAlignment="Left" Background="#F9FAFB" Foreground="{StaticResource TextPrimary}" Padding="14,12" Margin="0,0,0,7" Click="Products_Click"/>
+                        <Button Content="◇  Consultar stock" HorizontalContentAlignment="Left" Background="#F9FAFB" Foreground="{StaticResource TextPrimary}" Padding="14,12" Margin="0,0,0,7" Click="Stock_Click"/>
+                        <Button Content="▥  Ver facturação" HorizontalContentAlignment="Left" Background="#F9FAFB" Foreground="{StaticResource TextPrimary}" Padding="14,12" Click="Invoices_Click"/>
                     </StackPanel>
-                </Grid>
-            </Border>
+                </Border>
+            </Grid>
         </Grid>
     </Grid>
 </Window>

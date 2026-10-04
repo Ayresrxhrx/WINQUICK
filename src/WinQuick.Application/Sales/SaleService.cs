@@ -1,4 +1,5 @@
 using WinQuick.Application.Abstractions;
+using WinQuick.Application.Ingredients;
 using WinQuick.Application.Stock;
 using WinQuick.Core.Entities;
 
@@ -10,111 +11,58 @@ public sealed class SaleService(
     IRepository<Payment> payments,
     IRepository<Product> products,
     IStockService stock,
+    IIngredientService ingredients,
     IUnitOfWork unitOfWork) : ISaleService
 {
-    public async Task<CreateSaleResult> CreateAsync(
-        CreateSaleCommand command,
-        CancellationToken cancellationToken = default)
+    public async Task<CreateSaleResult> CreateAsync(CreateSaleCommand command, CancellationToken cancellationToken = default)
     {
         ValidateCommand(command);
-
         var productIds = command.Items.Select(x => x.ProductId).Distinct().ToArray();
-        var productList = products.Query()
-            .Where(x => productIds.Contains(x.Id) && x.CompanyId == command.CompanyId && x.IsActive)
-            .ToList();
-
+        var productList = products.Query().Where(x => productIds.Contains(x.Id) && x.CompanyId == command.CompanyId && x.IsActive).ToList();
         cancellationToken.ThrowIfCancellationRequested();
-
-        if (productList.Count != productIds.Length)
-            throw new SaleValidationException("Um ou mais produtos não existem, estão inactivos ou não pertencem à empresa.");
+        if (productList.Count != productIds.Length) throw new SaleValidationException("Um ou mais produtos não existem, estão inactivos ou não pertencem à empresa.");
 
         var productMap = productList.ToDictionary(x => x.Id);
-        var subtotal = 0m;
-        var discount = 0m;
-        var tax = 0m;
-
+        var subtotal = 0m; var discount = 0m; var tax = 0m;
         foreach (var item in command.Items)
         {
             var product = productMap[item.ProductId];
             var lineSubtotal = item.Quantity * item.UnitPrice;
-
-            if (item.UnitPrice < 0m || item.DiscountAmount < 0m || item.DiscountAmount > lineSubtotal)
-                throw new SaleValidationException($"Valores inválidos para o produto {product.Name}.");
-
+            if (item.UnitPrice < 0m || item.DiscountAmount < 0m || item.DiscountAmount > lineSubtotal) throw new SaleValidationException($"Valores inválidos para o produto {product.Name}.");
             var taxableAmount = lineSubtotal - item.DiscountAmount;
-            var lineTax = taxableAmount * product.TaxRate / 100m;
-
-            subtotal += lineSubtotal;
-            discount += item.DiscountAmount;
-            tax += lineTax;
+            subtotal += lineSubtotal; discount += item.DiscountAmount; tax += taxableAmount * product.TaxRate / 100m;
         }
 
         var total = subtotal - discount + tax;
         var applied = command.Payments.Sum(x => x.AmountApplied);
         var tendered = command.Payments.Sum(x => x.AmountTendered);
-
-        if (applied < total)
-            throw new SaleValidationException("O valor pago é inferior ao total da venda.");
-
+        if (applied < total) throw new SaleValidationException("O valor pago é inferior ao total da venda.");
         var change = Math.Max(0m, tendered - applied);
         var now = DateTime.UtcNow;
-        var uniqueSuffix = Guid.NewGuid().ToString("N")[..6];
-
         var sale = new Sale
         {
-            Id = Guid.NewGuid(),
-            CompanyId = command.CompanyId,
-            TerminalId = command.TerminalId,
-            UserId = command.UserId,
-            CustomerId = command.CustomerId,
-            Number = $"V-{now:yyyyMMddHHmmssfff}-{uniqueSuffix}",
-            Subtotal = subtotal,
-            DiscountAmount = discount,
-            TaxAmount = tax,
-            Total = total,
-            PaidAmount = applied,
-            ChangeAmount = change,
-            CreatedAtUtc = now,
-            CompletedAtUtc = now
+            Id = Guid.NewGuid(), CompanyId = command.CompanyId, TerminalId = command.TerminalId, UserId = command.UserId,
+            CustomerId = command.CustomerId, Number = $"V-{now:yyyyMMddHHmmssfff}-{Guid.NewGuid():N}"[..23],
+            Subtotal = subtotal, DiscountAmount = discount, TaxAmount = tax, Total = total,
+            PaidAmount = applied, ChangeAmount = change, CreatedAtUtc = now, CompletedAtUtc = now
         };
 
-        var createdItems = command.Items
-            .Select(item => SaleItemFactory.Create(item, productMap[item.ProductId], sale.Id))
-            .ToArray();
-
+        var createdItems = command.Items.Select(item => SaleItemFactory.Create(item, productMap[item.ProductId], sale.Id)).ToArray();
         var createdPayments = SalePaymentFactory.Create(command, sale.Id, now).ToArray();
 
         await unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
             await sales.AddAsync(sale, ct);
-
             foreach (var item in createdItems)
             {
-                await stock.DecreaseAsync(
-                    command.CompanyId,
-                    item.ProductId,
-                    item.Quantity,
-                    command.UserId,
-                    command.TerminalId,
-                    sale.Number,
-                    ct);
-
+                await stock.DecreaseAsync(command.CompanyId, item.ProductId, item.Quantity, command.UserId, command.TerminalId, sale.Number, ct);
+                await ingredients.ConsumeForSaleAsync(command.CompanyId, item.ProductId, item.Quantity, command.UserId, command.TerminalId, sale.Number, ct);
                 await saleItems.AddAsync(item, ct);
             }
-
-            foreach (var payment in createdPayments)
-                await payments.AddAsync(payment, ct);
+            foreach (var payment in createdPayments) await payments.AddAsync(payment, ct);
         }, cancellationToken);
 
-        return new CreateSaleResult(
-            sale.Id,
-            sale.Number,
-            sale.Subtotal,
-            sale.DiscountAmount,
-            sale.TaxAmount,
-            sale.Total,
-            sale.PaidAmount,
-            sale.ChangeAmount);
+        return new CreateSaleResult(sale.Id, sale.Number, sale.Subtotal, sale.DiscountAmount, sale.TaxAmount, sale.Total, sale.PaidAmount, sale.ChangeAmount);
     }
 
     private static void ValidateCommand(CreateSaleCommand command)

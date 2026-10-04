@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using WinQuick.Application.Auditing;
 using WinQuick.Application.Cash;
 using WinQuick.Application.Customers;
+using WinQuick.Application.Ingredients;
 using WinQuick.Application.Invoicing;
 using WinQuick.Application.Purchases;
 using WinQuick.Application.Sales;
@@ -19,6 +21,8 @@ public static class DependencyInjection
         services.AddScoped<InvoiceService>();
         services.AddScoped<ISupplierService, SupplierService>();
         services.AddScoped<IPurchaseService, PurchaseService>();
+        services.AddScoped<IIngredientService, IngredientService>();
+        services.AddScoped<IAuditService, AuditService>();
         return services;
     }
 }

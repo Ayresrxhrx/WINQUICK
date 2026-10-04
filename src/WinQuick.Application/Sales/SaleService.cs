@@ -1,7 +1,9 @@
 using WinQuick.Application.Abstractions;
 using WinQuick.Application.Ingredients;
+using WinQuick.Application.Security;
 using WinQuick.Application.Stock;
 using WinQuick.Core.Entities;
+using WinQuick.Core.Security;
 
 namespace WinQuick.Application.Sales;
 
@@ -12,11 +14,14 @@ public sealed class SaleService(
     IRepository<Product> products,
     IStockService stock,
     IIngredientService ingredients,
+    IPermissionService permissions,
     IUnitOfWork unitOfWork) : ISaleService
 {
     public async Task<CreateSaleResult> CreateAsync(CreateSaleCommand command, CancellationToken cancellationToken = default)
     {
         ValidateCommand(command);
+        await permissions.EnsurePermissionAsync(command.UserId, command.CompanyId, Permission.SaleCreate, cancellationToken);
+
         var productIds = command.Items.Select(x => x.ProductId).Distinct().ToArray();
         var productList = products.Query().Where(x => productIds.Contains(x.Id) && x.CompanyId == command.CompanyId && x.IsActive).ToList();
         cancellationToken.ThrowIfCancellationRequested();
@@ -24,14 +29,22 @@ public sealed class SaleService(
 
         var productMap = productList.ToDictionary(x => x.Id);
         var subtotal = 0m; var discount = 0m; var tax = 0m;
+        var hasDiscount = false;
+        var hasManualPrice = false;
+
         foreach (var item in command.Items)
         {
             var product = productMap[item.ProductId];
             var lineSubtotal = item.Quantity * item.UnitPrice;
             if (item.UnitPrice < 0m || item.DiscountAmount < 0m || item.DiscountAmount > lineSubtotal) throw new SaleValidationException($"Valores inválidos para o produto {product.Name}.");
+            if (item.DiscountAmount > 0m) hasDiscount = true;
+            if (item.UnitPrice != product.SalePrice) hasManualPrice = true;
             var taxableAmount = lineSubtotal - item.DiscountAmount;
             subtotal += lineSubtotal; discount += item.DiscountAmount; tax += taxableAmount * product.TaxRate / 100m;
         }
+
+        if (hasDiscount) await permissions.EnsurePermissionAsync(command.UserId, command.CompanyId, Permission.SaleDiscount, cancellationToken);
+        if (hasManualPrice) await permissions.EnsurePermissionAsync(command.UserId, command.CompanyId, Permission.SaleManualPrice, cancellationToken);
 
         var total = subtotal - discount + tax;
         var applied = command.Payments.Sum(x => x.AmountApplied);

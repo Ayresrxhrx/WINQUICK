@@ -1,0 +1,50 @@
+using Microsoft.EntityFrameworkCore;
+using WinQuick.Application.Abstractions;
+using WinQuick.Core.Entities;
+using WinQuick.Core.Security;
+
+namespace WinQuick.Application.Security;
+
+public sealed record CreateUserCommand(Guid CompanyId, string Username, string DisplayName, string Password, Guid RoleId);
+
+public sealed class UserManagementService(
+    IRepository<User> users,
+    IRepository<Role> roles,
+    IRepository<UserRole> userRoles,
+    IUnitOfWork unitOfWork)
+{
+    public Task<List<User>> ListAsync(Guid companyId, CancellationToken cancellationToken = default)
+        => users.Query().Where(x => x.CompanyId == companyId).OrderBy(x => x.Username).ToListAsync(cancellationToken);
+
+    public async Task<User> CreateAsync(CreateUserCommand command, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(command.Username)) throw new ArgumentException("O utilizador é obrigatório.");
+        if (command.Password.Length < 4) throw new ArgumentException("A senha deve ter pelo menos 4 caracteres.");
+        if (await users.Query().AnyAsync(x => x.CompanyId == command.CompanyId && x.Username == command.Username.Trim(), cancellationToken))
+            throw new InvalidOperationException("Este utilizador já existe.");
+        if (!await roles.Query().AnyAsync(x => x.Id == command.RoleId && x.CompanyId == command.CompanyId && x.IsActive, cancellationToken))
+            throw new InvalidOperationException("Perfil de acesso inválido.");
+
+        var user = new User
+        {
+            CompanyId = command.CompanyId,
+            Username = command.Username.Trim(),
+            DisplayName = command.DisplayName.Trim(),
+            PasswordHash = AuthenticationService.HashPassword(command.Password),
+            IsActive = true
+        };
+        await users.AddAsync(user, cancellationToken);
+        await userRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = command.RoleId }, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return user;
+    }
+
+    public async Task SetActiveAsync(Guid companyId, Guid userId, bool active, CancellationToken cancellationToken = default)
+    {
+        var user = await users.Query().FirstOrDefaultAsync(x => x.Id == userId && x.CompanyId == companyId, cancellationToken)
+            ?? throw new InvalidOperationException("Utilizador não encontrado.");
+        user.IsActive = active;
+        users.Update(user);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+}

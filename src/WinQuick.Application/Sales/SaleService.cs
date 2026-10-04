@@ -1,4 +1,5 @@
 using WinQuick.Application.Abstractions;
+using WinQuick.Application.Stock;
 using WinQuick.Core.Entities;
 
 namespace WinQuick.Application.Sales;
@@ -8,6 +9,7 @@ public sealed class SaleService(
     IRepository<SaleItem> saleItems,
     IRepository<Payment> payments,
     IRepository<Product> products,
+    IStockService stock,
     IUnitOfWork unitOfWork) : ISaleService
 {
     public async Task<CreateSaleResult> CreateAsync(
@@ -87,7 +89,18 @@ public sealed class SaleService(
             await sales.AddAsync(sale, ct);
 
             foreach (var item in createdItems)
+            {
+                await stock.DecreaseAsync(
+                    command.CompanyId,
+                    item.ProductId,
+                    item.Quantity,
+                    command.UserId,
+                    command.TerminalId,
+                    sale.Number,
+                    ct);
+
                 await saleItems.AddAsync(item, ct);
+            }
 
             foreach (var payment in createdPayments)
                 await payments.AddAsync(payment, ct);

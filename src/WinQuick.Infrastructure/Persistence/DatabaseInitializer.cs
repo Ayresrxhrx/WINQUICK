@@ -6,7 +6,7 @@ public sealed class DatabaseInitializer(WinQuickDbContext db, SecuritySeeder sec
 {
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        await db.Database.MigrateAsync(cancellationToken);
+        await db.Database.EnsureCreatedAsync(cancellationToken);
         await securitySeeder.SeedAsync(cancellationToken);
     }
 

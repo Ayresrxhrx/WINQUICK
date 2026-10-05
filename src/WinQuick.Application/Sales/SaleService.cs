@@ -65,7 +65,7 @@ public sealed class SaleService(
             PaidAmount = applied, ChangeAmount = change, CreatedAtUtc = now, CompletedAtUtc = now
         };
 
-        var createdItems = command.Items.Select(item => SaleItemFactory.Create(item, productMap[item.ProductId], sale.Id)).ToArray();
+        var createdItems = command.Items.Select(item => { var product = productMap[item.ProductId]; var taxRate = product.TaxRateId.HasValue && taxMap.TryGetValue(product.TaxRateId.Value, out var rate) ? rate : 0m; return SaleItemFactory.Create(item, product, sale.Id, taxRate); }).ToArray();
         var createdPayments = SalePaymentFactory.Create(command, sale.Id, now).ToArray();
 
         await unitOfWork.ExecuteInTransactionAsync(async ct =>

@@ -43,10 +43,7 @@ public sealed class ProductBarcodeConfiguration : IEntityTypeConfiguration<Produ
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Barcode).HasMaxLength(100).IsRequired();
         builder.HasIndex(x => x.Barcode).IsUnique();
-        builder.HasOne<Product>()
-            .WithMany()
-            .HasForeignKey(x => x.ProductId)
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

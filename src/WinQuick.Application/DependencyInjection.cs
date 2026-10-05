@@ -33,8 +33,8 @@ public static class DependencyInjection
         services.AddScoped<PurchaseReceivingService>();
         services.AddScoped<IIngredientService, IngredientService>();
         services.AddScoped<IAuditService, AuditService>();
-        services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<WinQuick.Application.Abstractions.IStockService, WinQuick.Application.Stock.StockService>();
+        services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<ISaleReturnService, SaleReturnService>();
         services.AddScoped<ISaleReturnRefundService, SaleReturnRefundService>();
         services.AddScoped<SaleReturnCreditNoteService>();

@@ -40,7 +40,7 @@ public sealed class AuthenticationService(
         Span<byte> salt = stackalloc byte[16];
         RandomNumberGenerator.Fill(salt);
         var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, 120_000, HashAlgorithmName.SHA256, 32);
-        return $"PBKDF2-SHA256$120000${Convert.ToBase64String(salt)}${Convert.ToBase64String(hash)}";
+        return $"PBKDF2-SHA256$120000${System.Convert.ToBase64String(salt)}${System.Convert.ToBase64String(hash)}";
     }
 
     private static bool VerifyPassword(string password, string encoded)
@@ -49,8 +49,8 @@ public sealed class AuthenticationService(
         if (parts.Length != 4 || parts[0] != "PBKDF2-SHA256" || !int.TryParse(parts[1], out var iterations)) return false;
         try
         {
-            var salt = Convert.FromBase64String(parts[2]);
-            var expected = Convert.FromBase64String(parts[3]);
+            var salt = System.Convert.FromBase64String(parts[2]);
+            var expected = System.Convert.FromBase64String(parts[3]);
             var actual = Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, expected.Length);
             return CryptographicOperations.FixedTimeEquals(actual, expected);
         }

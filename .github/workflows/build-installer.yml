@@ -1,0 +1,99 @@
+name: WINQUICK - Build Windows Installer
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+env:
+  CONFIGURATION: Release
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration $env:CONFIGURATION --no-restore
+
+      - name: Publish WINQUICK
+        shell: pwsh
+        run: |
+          $project = Get-ChildItem -Path . -Recurse -Filter WinQuick.Desktop.csproj | Select-Object -First 1
+          if (-not $project) { throw 'WinQuick.Desktop.csproj não foi encontrado.' }
+          dotnet publish $project.FullName -c $env:CONFIGURATION -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o ./publish
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Create installer script
+        shell: pwsh
+        run: |
+          $version = if ($env:GITHUB_REF -match 'refs/tags/v(.+)') { $Matches[1] } else { '1.0.0' }
+          @"
+          #define MyAppName "WINQUICK"
+          #define MyAppVersion "$version"
+          #define MyAppPublisher "WINQUICK"
+          #define MyAppExeName "WinQuick.Desktop.exe"
+
+          [Setup]
+          AppId={{8B8C2D8B-2E8E-4B69-9D51-7D5B7F2C8A11}
+          AppName={#MyAppName}
+          AppVersion={#MyAppVersion}
+          AppPublisher={#MyAppPublisher}
+          DefaultDirName={autopf}\WINQUICK
+          DefaultGroupName=WINQUICK
+          OutputDir=installer
+          OutputBaseFilename=WINQUICK-Setup-{#MyAppVersion}
+          Compression=lzma2
+          SolidCompression=yes
+          ArchitecturesInstallIn64BitMode=x64
+          PrivilegesRequired=admin
+          UninstallDisplayIcon={app}\{#MyAppExeName}
+
+          [Files]
+          Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+          [Icons]
+          Name: "{autodesktop}\WINQUICK"; Filename: "{app}\{#MyAppExeName}"
+          Name: "{group}\WINQUICK"; Filename: "{app}\{#MyAppExeName}"
+
+          [Run]
+          Filename: "{app}\{#MyAppExeName}"; Description: "Executar WINQUICK"; Flags: nowait postinstall skipifsilent
+          "@ | Set-Content -Encoding UTF8 installer.iss
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force installer | Out-Null
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' installer.iss
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WINQUICK-Windows-Installer
+          path: installer/*.exe
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: installer/*.exe

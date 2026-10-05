@@ -15,10 +15,9 @@ public partial class App : System.Windows.Application
 
     protected override async void OnStartup(System.Windows.StartupEventArgs e)
     {
-        // The login window is temporary. Keep the application alive while it is open
-        // so closing the login dialog cannot terminate the process before MainWindow is created.
+        // The login window is temporary. Keep the application alive explicitly
+        // until the authenticated MainWindow has been created and shown.
         ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
-
         base.OnStartup(e);
 
         try
@@ -30,53 +29,57 @@ public partial class App : System.Windows.Application
                 options.UseSqlite($"Data Source={databasePath}"));
 
             services.AddWinQuickInfrastructure();
+
             _services = services.BuildServiceProvider(new ServiceProviderOptions
             {
                 ValidateScopes = true,
                 ValidateOnBuild = true
             });
 
-            using (var scope = _services.CreateScope())
+            using (var initializationScope = _services.CreateScope())
             {
-                await scope.ServiceProvider
+                await initializationScope.ServiceProvider
                     .GetRequiredService<DatabaseInitializer>()
                     .InitializeAsync();
             }
 
-            // Do NOT assign the login dialog to Application.MainWindow.
-            // Doing so with the default WPF shutdown mode can make the application
-            // exit immediately when the dialog closes successfully.
+            AuthenticatedUser? authenticatedUser;
+
+            // Keep the login scope isolated from the main application scope.
+            // The login dialog is modal and is allowed to close only after a successful login.
             using (var loginScope = _services.CreateScope())
             {
                 var login = new LoginWindow(
                     loginScope.ServiceProvider.GetRequiredService<AuthenticationService>());
 
                 var loginResult = login.ShowDialog();
-
-                if (loginResult != true || login.AuthenticatedUser is null)
-                {
-                    Shutdown(0);
-                    return;
-                }
-
-                var authenticatedUser = login.AuthenticatedUser;
-
-                _mainScope = _services.CreateScope();
-                var mainServices = _mainScope.ServiceProvider;
-                var db = mainServices.GetRequiredService<WinQuickDbContext>();
-
-                var window = new MainWindow(
-                    mainServices.GetRequiredService<UserManagementService>(),
-                    db,
-                    mainServices.GetRequiredService<ISaleService>(),
-                    mainServices.GetRequiredService<IProductService>(),
-                    authenticatedUser.CompanyId,
-                    authenticatedUser.UserId);
-
-                MainWindow = window;
-                ShutdownMode = System.Windows.ShutdownMode.OnMainWindowClose;
-                window.Show();
+                authenticatedUser = loginResult == true ? login.AuthenticatedUser : null;
             }
+
+            if (authenticatedUser is null)
+            {
+                Shutdown(0);
+                return;
+            }
+
+            // Create the main application scope only after login has completely finished.
+            _mainScope = _services.CreateScope();
+            var mainServices = _mainScope.ServiceProvider;
+
+            var db = mainServices.GetRequiredService<WinQuickDbContext>();
+            var window = new MainWindow(
+                mainServices.GetRequiredService<UserManagementService>(),
+                db,
+                mainServices.GetRequiredService<ISaleService>(),
+                mainServices.GetRequiredService<IProductService>(),
+                authenticatedUser.CompanyId,
+                authenticatedUser.UserId);
+
+            // Assign MainWindow before changing ShutdownMode or showing it.
+            MainWindow = window;
+            ShutdownMode = System.Windows.ShutdownMode.OnMainWindowClose;
+            window.Show();
+            window.Activate();
         }
         catch (Exception ex)
         {

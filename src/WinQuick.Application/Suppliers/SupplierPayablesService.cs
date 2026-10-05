@@ -18,19 +18,19 @@ public sealed class SupplierPayablesService(
 
         var totalPayable = await purchaseOrders.Query()
             .Where(x => x.CompanyId == companyId && x.SupplierId == supplierId && !x.IsCancelled)
-            .SumAsync(x => x.TotalAmount, cancellationToken);
+            .SumAsync(x => x.Total, cancellationToken);
 
         var totalPaid = await payments.Query()
-            .Where(x => x.CompanyId == companyId && x.SupplierId == supplierId && !x.IsCancelled)
+            .Where(x => x.CompanyId == companyId && x.SupplierId == supplierId)
             .SumAsync(x => x.Amount, cancellationToken);
 
         return new SupplierPayableSummary(totalPayable, totalPaid, Math.Max(0m, totalPayable - totalPaid));
     }
 
-    public async Task<SupplierPayment> RegisterPaymentAsync(Guid companyId, Guid supplierId, decimal amount, string method, string? reference, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<SupplierPayment> RegisterPaymentAsync(Guid companyId, Guid supplierId, decimal amount, string reference, Guid userId, CancellationToken cancellationToken = default)
     {
         if (amount <= 0m) throw new ArgumentException("O valor do pagamento deve ser superior a zero.");
-        if (string.IsNullOrWhiteSpace(method)) throw new ArgumentException("O método de pagamento é obrigatório.");
+        if (string.IsNullOrWhiteSpace(reference)) throw new ArgumentException("A referência do pagamento é obrigatória.");
         await EnsureSupplierAsync(companyId, supplierId, cancellationToken);
 
         var summary = await GetSummaryAsync(companyId, supplierId, cancellationToken);
@@ -42,11 +42,9 @@ public sealed class SupplierPayablesService(
             CompanyId = companyId,
             SupplierId = supplierId,
             Amount = amount,
-            PaymentMethod = method.Trim(),
-            Reference = reference?.Trim(),
+            Reference = reference.Trim(),
             UserId = userId,
-            CreatedAtUtc = DateTime.UtcNow,
-            IsCancelled = false
+            PaidAtUtc = DateTime.UtcNow
         };
 
         await payments.AddAsync(payment, cancellationToken);

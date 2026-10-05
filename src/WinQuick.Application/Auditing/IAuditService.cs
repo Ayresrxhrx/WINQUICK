@@ -1,3 +1,4 @@
+using WinQuick.Application.Abstractions;
 using WinQuick.Core.Entities;
 
 namespace WinQuick.Application.Auditing;

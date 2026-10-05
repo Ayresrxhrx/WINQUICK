@@ -25,7 +25,8 @@ public partial class ProductsWindow : Window
     {
         var dialog = new ProductEditorWindow(_products, _companyId) { Owner = this };
         if (dialog.ShowDialog() == true) await LoadAsync();
-    }
+    }    private void ProductsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
+
     private async void ProductsGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (ProductsGrid.SelectedItem is Product product)

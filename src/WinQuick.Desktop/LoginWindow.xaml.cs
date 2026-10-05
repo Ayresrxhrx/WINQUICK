@@ -68,10 +68,8 @@ public partial class LoginWindow : System.Windows.Window
         finally
         {
             _isLoggingIn = false;
-            if (!IsVisible)
-                return;
-
-            LoginButton.IsEnabled = true;
+            if (IsVisible)
+                LoginButton.IsEnabled = true;
         }
     }
 }

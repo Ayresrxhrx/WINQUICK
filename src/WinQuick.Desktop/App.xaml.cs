@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using WinQuick.Application.Sales;
 using WinQuick.Application.Security;
 using WinQuick.Infrastructure;
 using WinQuick.Infrastructure.Persistence;
@@ -31,7 +32,12 @@ public partial class App : System.Windows.Application
 
             var mainScope = _services.CreateScope();
             var db = mainScope.ServiceProvider.GetRequiredService<WinQuickDbContext>();
-            var window = new MainWindow(mainScope.ServiceProvider.GetRequiredService<UserManagementService>(), db, login.AuthenticatedUser.CompanyId);
+            var window = new MainWindow(
+                mainScope.ServiceProvider.GetRequiredService<UserManagementService>(),
+                db,
+                mainScope.ServiceProvider.GetRequiredService<ISaleService>(),
+                login.AuthenticatedUser.CompanyId,
+                login.AuthenticatedUser.Id);
             MainWindow = window;
             window.Show();
         }

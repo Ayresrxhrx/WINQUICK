@@ -8,7 +8,7 @@ internal static class SaleItemFactory
     {
         var lineSubtotal = commandItem.Quantity * commandItem.UnitPrice;
         var taxableAmount = lineSubtotal - commandItem.DiscountAmount;
-        var tax = taxableAmount * product.TaxRate / 100m;
+        var tax = 0m;
         var total = taxableAmount + tax;
 
         return new SaleItem
@@ -19,7 +19,7 @@ internal static class SaleItemFactory
             Quantity = commandItem.Quantity,
             UnitPrice = commandItem.UnitPrice,
             DiscountAmount = commandItem.DiscountAmount,
-            TaxRate = product.TaxRate,
+            TaxRate = 0m,
             TaxAmount = tax,
             LineTotal = total
         };

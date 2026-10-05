@@ -16,7 +16,6 @@ public sealed class SaleReturnService(
     IRepository<SaleItem> saleItems,
     IRepository<SaleReturn> returns,
     IRepository<SaleReturnItem> returnItems,
-    IRepository<Product> products,
     IRepository<StockBalance> stockBalances,
     IRepository<StockMovement> stockMovements,
     IUnitOfWork unitOfWork) : ISaleReturnService

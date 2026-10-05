@@ -34,8 +34,7 @@
                          FontSize="14"
                          VerticalContentAlignment="Center"
                          Margin="0,7,0,17"
-                         Text="Admin"
-                         KeyDown="LoginInput_KeyDown"/>
+                         Text="Admin"/>
 
                 <TextBlock Text="Senha" FontSize="11" FontWeight="SemiBold" Foreground="#344054"/>
                 <PasswordBox x:Name="PasswordBox"
@@ -43,8 +42,7 @@
                              Padding="12,0"
                              FontSize="14"
                              VerticalContentAlignment="Center"
-                             Margin="0,7,0,10"
-                             KeyDown="LoginInput_KeyDown"/>
+                             Margin="0,7,0,10"/>
 
                 <TextBlock x:Name="ErrorText"
                            TextWrapping="Wrap"

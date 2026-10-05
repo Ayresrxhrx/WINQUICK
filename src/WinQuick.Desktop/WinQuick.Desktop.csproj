@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <EnableDefaultApplicationDefinition>true</EnableDefaultApplicationDefinition>
     <RootNamespace>WinQuick.Desktop</RootNamespace>
     <AssemblyName>WinQuick.Desktop</AssemblyName>
   </PropertyGroup>

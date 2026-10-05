@@ -6,13 +6,7 @@ namespace WinQuick.Infrastructure.Persistence.Configurations;
 
 internal static class EntityConfigurationExtensions
 {
-    public static void ConfigureTenantEntity<TEntity>(this EntityTypeBuilder<TEntity> builder) where TEntity : class
-    {
-        builder.Property<Guid>("CompanyId").IsRequired();
-    }
-}
-
-public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
+    public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
 {
     public void Configure(EntityTypeBuilder<Company> b)
     {

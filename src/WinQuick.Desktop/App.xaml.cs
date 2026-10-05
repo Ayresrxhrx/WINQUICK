@@ -27,14 +27,11 @@ public partial class App : System.Windows.Application
             using var loginScope = _services.CreateScope();
             var login = new LoginWindow(loginScope.ServiceProvider.GetRequiredService<AuthenticationService>());
             MainWindow = login;
-            if (login.ShowDialog() != true || login.AuthenticatedUser is null)
-            {
-                Shutdown();
-                return;
-            }
+            if (login.ShowDialog() != true || login.AuthenticatedUser is null) { Shutdown(); return; }
 
             var mainScope = _services.CreateScope();
-            var window = new MainWindow(mainScope.ServiceProvider.GetRequiredService<UserManagementService>(), login.AuthenticatedUser.CompanyId);
+            var db = mainScope.ServiceProvider.GetRequiredService<WinQuickDbContext>();
+            var window = new MainWindow(mainScope.ServiceProvider.GetRequiredService<UserManagementService>(), db, login.AuthenticatedUser.CompanyId);
             MainWindow = window;
             window.Show();
         }
@@ -45,9 +42,5 @@ public partial class App : System.Windows.Application
         }
     }
 
-    protected override void OnExit(System.Windows.ExitEventArgs e)
-    {
-        _services?.Dispose();
-        base.OnExit(e);
-    }
+    protected override void OnExit(System.Windows.ExitEventArgs e) { _services?.Dispose(); base.OnExit(e); }
 }

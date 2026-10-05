@@ -13,16 +13,7 @@ public partial class LoginWindow : System.Windows.Window
     {
         InitializeComponent();
         _authentication = authentication;
-        Loaded += (_, _) => PasswordBox.Focus();
-    }
-
-    private void LoginInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-    {
-        if (e.Key != System.Windows.Input.Key.Enter && e.Key != System.Windows.Input.Key.Return)
-            return;
-
-        e.Handled = true;
-        LoginButton.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        Loaded += (_, _) => UsernameBox.Focus();
     }
 
     private async void Login_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -57,8 +48,10 @@ public partial class LoginWindow : System.Windows.Window
             }
 
             AuthenticatedUser = result;
+
+            // DialogResult closes a modal WPF window by itself. Do not call Close()
+            // afterwards because the application is waiting on ShowDialog().
             DialogResult = true;
-            Close();
         }
         catch (Exception ex)
         {

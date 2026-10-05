@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
-using WinQuick.Application.Security;
-using WinQuick.Application.Stock;
 using WinQuick.Application.Abstractions;
+using WinQuick.Application.Products;
+using WinQuick.Application.Security;
+using WinQuick.Application.Sales;
+using WinQuick.Application.Stock;
 using WinQuick.Infrastructure.Persistence;
 using WinQuick.Infrastructure.Stock;
 
@@ -14,6 +16,8 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IStockService, StockService>();
+        services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<ISaleService, SaleService>();
         services.AddScoped<AuthenticationService>();
         services.AddScoped<UserManagementService>();
         services.AddScoped<SecuritySeeder>();

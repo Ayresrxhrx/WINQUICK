@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using WinQuick.Application.Abstractions;
 using WinQuick.Core.Entities;
+using CoreRole = WinQuick.Core.Security.Role;
+using CoreUserRole = WinQuick.Core.Security.UserRole;
 
 namespace WinQuick.Application.Security;
 

@@ -35,22 +35,6 @@ public sealed class TerminalConfiguration : IEntityTypeConfiguration<Terminal>
     }
 }
 
-public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
-{
-    public void Configure(EntityTypeBuilder<Product> b)
-    {
-        b.HasKey(x => x.Id);
-        b.Property(x => x.Name).HasMaxLength(200).IsRequired();
-        b.Property(x => x.Sku).HasMaxLength(100).IsRequired();
-        b.Property(x => x.CostPrice).HasPrecision(18, 4);
-        b.Property(x => x.SalePrice).HasPrecision(18, 4);
-        b.Property(x => x.MinimumStock).HasPrecision(18, 4);
-        b.Property(x => x.MaximumStock).HasPrecision(18, 4);
-        b.HasIndex(x => new { x.CompanyId, x.Sku }).IsUnique();
-        b.HasIndex(x => new { x.CompanyId, x.Name });
-    }
-}
-
 public sealed class ProductBarcodeConfiguration : IEntityTypeConfiguration<ProductBarcode>
 {
     public void Configure(EntityTypeBuilder<ProductBarcode> b)
@@ -80,30 +64,5 @@ public sealed class TaxRateConfiguration : IEntityTypeConfiguration<TaxRate>
         b.Property(x => x.Name).HasMaxLength(100).IsRequired();
         b.Property(x => x.Rate).HasPrecision(9, 4);
         b.HasIndex(x => new { x.CompanyId, x.Name }).IsUnique();
-    }
-}
-
-public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
-{
-    public void Configure(EntityTypeBuilder<Customer> b)
-    {
-        b.HasKey(x => x.Id);
-        b.Property(x => x.Name).HasMaxLength(200).IsRequired();
-        b.Property(x => x.CreditLimit).HasPrecision(18, 4);
-        b.Property(x => x.CreditBalance).HasPrecision(18, 4);
-        b.HasIndex(x => new { x.CompanyId, x.Nuit });
-        b.HasIndex(x => new { x.CompanyId, x.Phone });
-    }
-}
-
-public sealed class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
-{
-    public void Configure(EntityTypeBuilder<Supplier> b)
-    {
-        b.HasKey(x => x.Id);
-        b.Property(x => x.Name).HasMaxLength(200).IsRequired();
-        b.Property(x => x.Balance).HasPrecision(18, 4);
-        b.HasIndex(x => new { x.CompanyId, x.Nuit });
-        b.HasIndex(x => new { x.CompanyId, x.Name });
     }
 }

@@ -10,7 +10,7 @@ public sealed class CashSessionService(
     IPermissionService permissions,
     IUnitOfWork unitOfWork) : ICashSessionService
 {
-    public async Task<CashSession> OpenAsync(
+    public async Task<Guid> OpenAsync(
         OpenCashSessionCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -42,6 +42,6 @@ public sealed class CashSessionService(
 
         await sessions.AddAsync(session, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return session;
+        return session.Id;
     }
 }

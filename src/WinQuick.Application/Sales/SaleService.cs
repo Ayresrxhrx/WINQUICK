@@ -1,7 +1,7 @@
 using WinQuick.Application.Abstractions;
 using WinQuick.Application.Ingredients;
 using WinQuick.Application.Security;
-using WinQuick.Application.Stock;
+using StockApplicationService = WinQuick.Application.Stock.IStockService;
 using WinQuick.Core.Entities;
 using WinQuick.Core.Security;
 
@@ -12,7 +12,7 @@ public sealed class SaleService(
     IRepository<SaleItem> saleItems,
     IRepository<Payment> payments,
     IRepository<Product> products,
-    IStockService stock,
+    StockApplicationService stock,
     IIngredientService ingredients,
     IPermissionService permissions,
     IUnitOfWork unitOfWork) : ISaleService

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using WinQuick.Application.Abstractions;
 using WinQuick.Application.Security;
 using WinQuick.Core.Entities;
-using WinQuick.Core.Security;
+using CorePermission = WinQuick.Core.Security.Permission;
 
 namespace WinQuick.Application.Stock;
 
@@ -78,7 +78,7 @@ public sealed class StockService(
     {
         if (targetQuantity < 0m) throw new ArgumentException("A quantidade de stock não pode ser negativa.");
         if (string.IsNullOrWhiteSpace(reason)) throw new ArgumentException("O motivo do ajuste é obrigatório.");
-        await permissions.EnsurePermissionAsync(userId, companyId, Permission.StockAdjust, cancellationToken);
+        await permissions.EnsurePermissionAsync(userId, companyId, CorePermission.StockAdjust, cancellationToken);
 
         var product = await GetProductAsync(companyId, productId, cancellationToken);
         if (!product.TrackStock) return;

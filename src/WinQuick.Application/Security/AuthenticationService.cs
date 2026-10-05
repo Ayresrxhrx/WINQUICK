@@ -10,8 +10,8 @@ public sealed record AuthenticatedUser(Guid UserId, Guid CompanyId, string Usern
 public sealed class AuthenticationService(
     IRepository<User> users,
     IRepository<Company> companies,
-    IRepository<UserRole> userRoles,
-    IRepository<Role> roles,
+    IRepository<CoreUserRole> userRoles,
+    IRepository<CoreRole> roles,
     IUnitOfWork unitOfWork)
 {
     public async Task<AuthenticatedUser?> LoginAsync(string username, string password, CancellationToken cancellationToken = default)

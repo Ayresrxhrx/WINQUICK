@@ -15,19 +15,6 @@ public sealed class StockBalanceConfiguration : IEntityTypeConfiguration<StockBa
     }
 }
 
-public sealed class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement>
-{
-    public void Configure(EntityTypeBuilder<StockMovement> builder)
-    {
-        builder.HasKey(x => x.Id);
-        builder.Property(x => x.Quantity).HasPrecision(18, 4);
-        builder.Property(x => x.UnitCost).HasPrecision(18, 4);
-        builder.Property(x => x.Type).HasMaxLength(50).IsRequired();
-        builder.Property(x => x.Reference).HasMaxLength(150);
-        builder.HasIndex(x => new { x.CompanyId, x.ProductId, x.CreatedAtUtc });
-    }
-}
-
 public sealed class StockTransferConfiguration : IEntityTypeConfiguration<StockTransfer>
 {
     public void Configure(EntityTypeBuilder<StockTransfer> builder)

@@ -115,7 +115,7 @@ public partial class PosWindow : Window
                 new[] { new CreateSalePayment(paymentMethod.Id, _viewModel.Total, _viewModel.Total, null) });
 
             var result = await _sales.CreateAsync(command);
-            MessageBox.Show($"Venda registada com sucesso.\n\nN.º: {result.Number}\nTotal: MT {result.Total:N2}", "Venda concluída", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show($"Venda registada com sucesso.\n\nN.º: {result.SaleNumber}\nTotal: MT {result.Total:N2}", "Venda concluída", MessageBoxButton.OK, MessageBoxImage.Information);
             _viewModel.Clear();
             RefreshTotals();
             await LoadProductsAsync();

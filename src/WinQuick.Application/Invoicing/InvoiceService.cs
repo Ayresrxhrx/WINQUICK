@@ -17,7 +17,6 @@ public sealed class InvoiceService(
     IRepository<InvoiceSeries> seriesRepository,
     IRepository<Sale> sales,
     IRepository<SaleItem> saleItems,
-    IRepository<Product> _products,
     IUnitOfWork unitOfWork)
 {
     public async Task<Invoice> IssueFromSaleAsync(

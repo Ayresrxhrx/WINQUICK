@@ -20,7 +20,7 @@ public partial class App : System.Windows.Application
             using var loginScope=_services.CreateScope(); var login=new LoginWindow(loginScope.ServiceProvider.GetRequiredService<AuthenticationService>()); MainWindow=login;
             if(login.ShowDialog()!=true||login.AuthenticatedUser is null){Shutdown();return;}
             var mainScope=_services.CreateScope(); var db=mainScope.ServiceProvider.GetRequiredService<WinQuickDbContext>();
-            var window=new MainWindow(mainScope.ServiceProvider.GetRequiredService<UserManagementService>(),db,mainScope.ServiceProvider.GetRequiredService<ISaleService>(),mainScope.ServiceProvider.GetRequiredService<IProductService>(),login.AuthenticatedUser.CompanyId,login.AuthenticatedUser.Id); MainWindow=window; window.Show();
+            var window=new MainWindow(mainScope.ServiceProvider.GetRequiredService<UserManagementService>(),db,mainScope.ServiceProvider.GetRequiredService<ISaleService>(),mainScope.ServiceProvider.GetRequiredService<IProductService>(),login.AuthenticatedUser.CompanyId,login.AuthenticatedUser.UserId); MainWindow=window; window.Show();
         }
         catch(Exception ex){System.Windows.MessageBox.Show($"Não foi possível iniciar o WINQUICK.\n\n{ex.Message}","WINQUICK",System.Windows.MessageBoxButton.OK,System.Windows.MessageBoxImage.Error);Shutdown(1);}
     }
